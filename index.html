@@ -1295,7 +1295,10 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const filmsCollection = collection(db, "films");
+    const params = new URLSearchParams(window.location.search);
+const carnetId = params.get("user") || "elisa";
+
+const filmsCollection = collection(db, "carnets", carnetId, "films");
 
     const TMDB_API_KEY = "e859b9c9246453cc5aed971926007836";
     const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";

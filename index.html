@@ -1607,7 +1607,13 @@
       const directors = countBy(viewed, f => f.director || "").slice(0, 10);
       const ratings = countBy(rated, f => `${Number(f.rating || 0).toFixed(Number.isInteger(Number(f.rating || 0)) ? 0 : 1)} ★`)
         .sort((a, b) => parseFloat(b[0]) - parseFloat(a[0]));
-      const best = [...rated].sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0) || (b.watchDate || "").localeCompare(a.watchDate || "")).slice(0, 10);
+      const best = [...rated]
+  .filter(f => Number(f.rating || 0) >= 4)
+  .sort((a, b) =>
+    Number(b.rating || 0) - Number(a.rating || 0) ||
+    (b.watchDate || "").localeCompare(a.watchDate || "")
+  )
+  .slice(0, 10);
       const currentYear = new Date().getFullYear().toString();
       const currentYearCount = viewed.filter(f => yearFromWatchDate(f) === currentYear).length;
 

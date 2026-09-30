@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Exporter mon carnet de films</title>
+<style>
+:root{--bg:#020102;--panel:#120708;--red:#d9092d;--red3:#ff173f;--gold:#d9a75d;--text:#fff1e5;--muted:#bda08f}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 50% 0%,rgba(217,9,45,.22),transparent 35%),linear-gradient(135deg,#020102,#130508 48%,#030102);color:var(--text);font-family:Georgia,"Times New Roman",serif}.card{width:min(680px,calc(100% - 28px));padding:34px;border:1px solid rgba(217,167,93,.38);border-radius:22px;background:linear-gradient(180deg,rgba(18,7,8,.96),rgba(3,1,2,.96));box-shadow:0 0 34px rgba(217,9,45,.28);text-align:center}h1{margin:0 0 10px;color:#fff2e6;text-transform:uppercase;letter-spacing:3px;text-shadow:0 0 22px rgba(255,23,63,.45)}p{color:var(--muted);line-height:1.55}.status{margin:22px 0;color:var(--gold)}button,a{display:inline-block;margin:6px;padding:13px 18px;border-radius:12px;border:1px solid rgba(217,167,93,.5);background:linear-gradient(180deg,rgba(139,0,23,.95),rgba(44,5,9,.95));color:var(--text);font:inherit;text-decoration:none;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}button:hover:not(:disabled),a:hover{border-color:var(--red3);box-shadow:0 0 16px rgba(217,9,45,.32)}small{display:block;margin-top:18px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main class="card">
+<h1>Exporter mon carnet</h1>
+<p>Cette page récupère uniquement les films de <strong>ton carnet principal</strong> dans la collection Firestore <code>films</code>. Elle ne touche pas au carnet de Naomy.</p>
+<div id="status" class="status">Connexion à Firebase…</div>
+<button id="exportBtn" disabled>Exporter mes films en JSON</button>
+<a href="./">Retour au carnet</a>
+<small>Le fichier exporté contient les titres, notes, statuts, dates, genres, réalisateurs, acteurs, résumés et identifiants TMDB disponibles.</small>
+</main>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getFirestore,collection,getDocs} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyA9FZWQIVnjmIymK-Dc5x0MyPlbNMr0kj0",authDomain:"carnet-films.firebaseapp.com",projectId:"carnet-films",storageBucket:"carnet-films.firebasestorage.app",messagingSenderId:"59752649700",appId:"1:59752649700:web:1e4c809b4a0fbf4c822df1"};
+const app=initializeApp(firebaseConfig);const db=getFirestore(app);const status=document.getElementById("status");const btn=document.getElementById("exportBtn");let films=[];
+try{const snap=await getDocs(collection(db,"films"));films=snap.docs.map(d=>{const f=d.data();return{id:d.id,title:f.title||"",director:f.director||"",genre:f.genre||"",releaseDate:f.releaseDate||f.date||"",watchDate:f.watchDate||(f.category==="Vu"?f.date||"":""),rating:Number(f.rating||0),category:f.category||"Vu",actors:f.actors||"",overview:f.overview||"",tmdbId:f.tmdbId||null,cover:f.cover||""}}).sort((a,b)=>(a.title||"").localeCompare(b.title||"","fr"));status.textContent=`${films.length} films prêts à être exportés.`;btn.disabled=false}catch(e){console.error(e);status.textContent="Impossible de lire les films. Vérifie les règles Firestore."}
+btn.addEventListener("click",()=>{const payload={exportedAt:new Date().toISOString(),source:"Carnet de films - Nyastur",count:films.length,films};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`carnet-films-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)});
+</script>
+</body>
+</html>
